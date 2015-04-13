@@ -20,10 +20,8 @@ export default function makeUniflowComponent (Component, stores) {
     }
 
     render () {
-      var storeProps = Object.keys(stores).reduce((memo, key) => {
-        memo[key] = stores[key].state
-        return memo
-      }, {})
+      var storeProps = {}
+      Object.keys(stores).forEach(key => storeProps[key] = stores[key].state)
       return <Component {...storeProps} {...this.props}/>
     }
   }
