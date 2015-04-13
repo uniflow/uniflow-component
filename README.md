@@ -13,33 +13,16 @@ $ npm install uniflow-component --save
 
 ## Usage
 
-All props given to the `UniflowComponent` are expected to be Uniflow stores. For
-each store prop, a prop of the same name is added to the `UniflowComponent`'s
-child component. All store props are automatically subscribed to, and any
-included store that fires a change event will rerender.
-
-Since the actual store state is used for the props on the child element,
-the react pure render mixin is supported if used by a child element.
-
 ```js
 import ThingStore from './stores/thing'
 import React from 'react'
-import UniflowComponent from 'uniflow-component'
+import uniflowComponent from 'uniflow-component'
 
-class HigerOrderComponent extends React.Component {
-  render () {
-    return (
-      <UniflowComponent thing={ThingStore}>
-        <DumbComponent/>
-      </UniflowComponent>
-    )
-  }
-}
-
-
-class DumbComponent extends React.Component {
+export class ThingPreview extends React.Component {
   render () {
     return <div>{this.props.thing.name}</div>
   }
 }
+
+export default uniflowComponent(ThingPreview, {thing: ThingStore})
 ```
