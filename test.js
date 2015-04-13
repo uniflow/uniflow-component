@@ -5,7 +5,7 @@ import sinon from 'sinon'
 import React from 'react'
 import EventEmitter from 'eventemitter3'
 import jsdom from 'mocha-jsdom'
-import Store from './source'
+import make from './source'
 
 function makeMockStore () {
   let store = new EventEmitter()
@@ -15,7 +15,13 @@ function makeMockStore () {
   return store
 }
 
-describe('<UniflowComponent/>', () => {
+class TestComponent {
+  render () {
+    return <div/>
+  }
+}
+
+describe('makeUniflowComponent()', () => {
   jsdom()
 
   let domNode
@@ -34,44 +40,27 @@ describe('<UniflowComponent/>', () => {
   })
 
   it('subscribes to all props after mounting', () => {
-    React.render(<Store a={storeA} b={storeB}><div/></Store>, domNode)
+    let Component = make(TestComponent, {a: storeA, b: storeB})
+    React.render(<Component/>, domNode)
     sinon.assert.called(storeA.addListener)
     sinon.assert.called(storeB.addListener)
   })
 
   it('throws when rendered with non-store props', () => {
-    let fn = () => React.render(<Store a="foo"><div/></Store>, domNode)
+    let Component = make(TestComponent, {a: 'foo'})
+    let fn = () => React.render(<Component/>, domNode)
     fn.should.throw()
   })
 
-  it('handles adding props', () => {
-    React.render(<Store a={storeA}><div/></Store>, domNode)
-    React.render(<Store a={storeA} b={storeB}><div/></Store>, domNode)
-    sinon.assert.calledOnce(storeA.addListener)
-    sinon.assert.calledOnce(storeB.addListener)
-  })
-
-  it('handles changing props', () => {
-    React.render(<Store a={storeA}><div/></Store>, domNode)
-    React.render(<Store a={storeB}><div/></Store>, domNode)
-    sinon.assert.calledOnce(storeA.removeListener)
-    sinon.assert.calledOnce(storeB.addListener)
-  })
-
-  it('handles removing props', () => {
-    React.render(<Store a={storeA} b={storeB}><div/></Store>, domNode)
-    React.render(<Store a={storeA}><div/></Store>, domNode)
-    sinon.assert.calledOnce(storeB.removeListener)
-  })
-
   it('unsubscribes to all props when unmounting', () => {
-    React.render(<Store a={storeA} b={storeB}><div/></Store>, domNode)
+    let Component = make(TestComponent, {a: storeA, b: storeB})
+    React.render(<Component/>, domNode)
     React.render(<div/>, domNode)
     sinon.assert.called(storeA.removeListener)
     sinon.assert.called(storeB.removeListener)
   })
 
-  it('it transfers the state of each prop to the child', () => {
+  it('it adds the state of each store as a prop to the component', () => {
     class Child extends React.Component {
       render () {
         this.props.a.should.equal(storeA.state)
@@ -79,25 +68,21 @@ describe('<UniflowComponent/>', () => {
         return <div/>
       }
     }
-    React.render(<Store a={storeA} b={storeB}><Child/></Store>, domNode)
-  })
-
-  it('throws with zero children', () => {
-    let fn = () => React.render(<Store/>, domNode)
-    fn.should.throw()
-  })
-
-  it('throws with more than one child', () => {
-    let fn = () => React.render(<Store><div/><div/></Store>, domNode)
-    fn.should.throw()
+    Child.propTypes = {
+      a: React.PropTypes.object,
+      b: React.PropTypes.object
+    }
+    let Component = make(Child, {a: storeA, b: storeB})
+    React.render(<Component/>, domNode)
   })
 
   it('re-renders when any store prop emits change event', () => {
-    let render = sinon.spy(Store.prototype, 'render')
-    React.render(<Store a={storeA}><div/></Store>, domNode)
+    let Component = make(TestComponent, {a: storeA})
+    let render = sinon.spy(Component.prototype, 'render')
+    React.render(<Component/>, domNode)
     sinon.assert.calledOnce(render)
     storeA.emit('change')
     sinon.assert.calledTwice(render)
-    Store.prototype.render.restore()
+    Component.prototype.render.restore()
   })
 })
