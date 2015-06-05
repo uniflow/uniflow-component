@@ -85,4 +85,11 @@ describe('makeUniflowComponent()', () => {
     sinon.assert.calledTwice(render)
     Component.prototype.render.restore()
   })
+
+  it('copies static properties from source component', () => {
+    class Source extends React.Component {}
+    Source.staticProp1 = {}
+    const Dest = make(Source, {a: storeA, b: storeB})
+    Dest.staticProp1.should.be.exactly(Source.staticProp1)
+  })
 })

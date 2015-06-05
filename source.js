@@ -1,7 +1,7 @@
 import React from 'react'
 
 export default function makeUniflowComponent (Component, stores) {
-  return class UniflowComponent extends React.Component {
+  return Object.assign(class UniflowComponent extends React.Component {
     constructor () {
       super()
       this.forceUpdate = this.forceUpdate.bind(this)
@@ -24,5 +24,5 @@ export default function makeUniflowComponent (Component, stores) {
       Object.keys(stores).forEach(key => storeProps[key] = stores[key].state)
       return <Component {...storeProps} {...this.props}/>
     }
-  }
+  }, Component)
 }
