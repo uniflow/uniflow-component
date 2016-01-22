@@ -4,25 +4,32 @@ export default function makeUniflowComponent (Component, stores) {
   return class UniflowComponent extends React.Component {
     constructor () {
       super()
-      this.forceUpdate = this.forceUpdate.bind(this)
+      var storeProps = {}
+      Object.keys(stores).forEach(key => storeProps[key] = stores[key].state)
+      this.state = { storeProps }
+      this.updateStorePropsState = this.updateStorePropsState.bind(this)
+    }
+
+    updateStorePropsState () {
+      var storeProps = {}
+      Object.keys(stores).forEach(key => storeProps[key] = stores[key].state)
+      this.setState({ storeProps })
     }
 
     componentDidMount () {
       Object.keys(stores).forEach(key => {
-        stores[key].addListener('change', this.forceUpdate)
+        stores[key].addListener('change', this.updateStorePropsState)
       })
     }
 
     componentWillUnmount () {
       Object.keys(stores).forEach(key => {
-        stores[key].removeListener('change', this.forceUpdate)
+        stores[key].removeListener('change', this.updateStorePropsState)
       })
     }
 
     render () {
-      var storeProps = {}
-      Object.keys(stores).forEach(key => storeProps[key] = stores[key].state)
-      return <Component {...storeProps} {...this.props}/>
+      return <Component {...this.state.storeProps} {...this.props}/>
     }
   }
 }
