@@ -15,7 +15,7 @@
   "author": "Brent Burgoyne",
   "license": "MIT",
   "peerDependencies": {
-    "react": "^0.14.0"
+    "react": "^0.14.0 || ^15.0.1"
   },
   "devDependencies": {
     "babel": "^5.0.9",
